@@ -10,6 +10,8 @@ require (
 	github.com/mewkiz/pkg v0.0.0-20250417130911-3f050ff8c56d // indirect
 	github.com/mewpkg/term v0.0.0-20241026122259-37a80af23985 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/tetratelabs/wazero v1.10.1 // indirect
+	go.senan.xyz/taglib v0.11.1 // indirect
 )
 
 require (
