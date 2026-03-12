@@ -48,7 +48,7 @@ func NewSong(path string) *Song {
 		date:        firstTag(tags, taglib.ReleaseDate),
 		trackNumber: firstTag(tags, taglib.TrackNumber),
 		genre:       tags[taglib.Genre],
-		trackLength: int(properties.SampleRate),
+		trackLength: int(properties.Length.Round(time.Second).Seconds()),
 
 		songPath: path,
 	}
@@ -82,10 +82,11 @@ func (s Song) PlaySong() {
 	fmt.Printf("Album:   %v\n", s.album)
 	fmt.Printf("Artist:   %v\n", s.artist)
 	fmt.Printf("Title:   %v\n", s.title)
-	fmt.Printf("Length:   %v\n", s.trackLength)
+	fmt.Printf("Length:   %v:%v\n", s.trackLength/60, s.trackLength%60)
 
 	// Initialize the speaker with the file's sample rate
 	// Buffer size: 1/10th of a second
+	// using beep sampleRate over tablib properties since that's what we're actually using to play music
 	bufferSize := format.SampleRate.N(time.Second / 10)
 	err = speaker.Init(format.SampleRate, bufferSize)
 	if err != nil {
