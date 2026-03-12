@@ -1,4 +1,4 @@
-module example.com/main
+module github.com/quakeq/djsera
 
 go 1.25.0
 

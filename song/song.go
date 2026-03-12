@@ -14,15 +14,15 @@ import (
 
 type Song struct {
 	//tags
-	album       string
-	artist      string
-	title       string
-	date        string
-	trackNumber string
-	genre       []string
+	Album       string
+	Artist      string
+	Title       string
+	Data        string
+	TrackNumber string
+	Genre       []string
 
 	//properties
-	trackLength int
+	TrackLength int
 
 	songPath string
 
@@ -42,13 +42,13 @@ func NewSong(path string) *Song {
 	}
 
 	return &Song{
-		album:       firstTag(tags, taglib.Album),
-		artist:      firstTag(tags, taglib.Artist),
-		title:       firstTag(tags, taglib.Title),
-		date:        firstTag(tags, taglib.ReleaseDate),
-		trackNumber: firstTag(tags, taglib.TrackNumber),
-		genre:       tags[taglib.Genre],
-		trackLength: int(properties.Length.Round(time.Second).Seconds()),
+		Album:       firstTag(tags, taglib.Album),
+		Artist:      firstTag(tags, taglib.Artist),
+		Title:       firstTag(tags, taglib.Title),
+		Data:        firstTag(tags, taglib.ReleaseDate),
+		TrackNumber: firstTag(tags, taglib.TrackNumber),
+		Genre:       tags[taglib.Genre],
+		TrackLength: int(properties.Length.Round(time.Second).Seconds()),
 
 		songPath: path,
 	}
@@ -79,10 +79,10 @@ func (s Song) PlaySong() {
 	fmt.Printf("Sample Rate: %d Hz\n", format.SampleRate)
 	fmt.Printf("Channels:    %d\n", format.NumChannels)
 	fmt.Printf("Precision:   %d-bit\n", format.Precision*8)
-	fmt.Printf("Album:   %v\n", s.album)
-	fmt.Printf("Artist:   %v\n", s.artist)
-	fmt.Printf("Title:   %v\n", s.title)
-	fmt.Printf("Length:   %v:%v\n", s.trackLength/60, s.trackLength%60)
+	fmt.Printf("Album:   %v\n", s.Album)
+	fmt.Printf("Artist:   %v\n", s.Artist)
+	fmt.Printf("Title:   %v\n", s.Title)
+	fmt.Printf("Length:   %v:%v\n", s.TrackLength/60, s.TrackLength%60)
 
 	// Initialize the speaker with the file's sample rate
 	// Buffer size: 1/10th of a second
