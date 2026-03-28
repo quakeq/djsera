@@ -12,14 +12,14 @@ import (
 )
 
 func main() {
-
+	// Don't pass rows here — songs aren't parsed yet
 	t := table.New(
 		table.WithColumns(filetree.GetColumns()),
-		table.WithRows(filetree.GetRows()),
 		table.WithFocused(true),
 		table.WithHeight(7),
 		table.WithWidth(42),
 	)
+
 	s := table.DefaultStyles()
 	s.Header = s.Header.
 		BorderStyle(lipgloss.NormalBorder()).
@@ -32,9 +32,10 @@ func main() {
 		Bold(false)
 	t.SetStyles(s)
 
-	filetree := filetree.NewFiletree(t)
+	// NewFiletree parses the dir and calls t.SetRows() internally
+	ft := filetree.NewFiletree(t)
 
-	if _, err := tea.NewProgram(filetree).Run(); err != nil {
+	if _, err := tea.NewProgram(ft).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}

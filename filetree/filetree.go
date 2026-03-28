@@ -1,8 +1,8 @@
 package filetree
 
 import (
-	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
 
 	"github.com/quakeq/djsera/song"
@@ -17,7 +17,7 @@ var baseStyle = lipgloss.NewStyle().
 	BorderForeground(lipgloss.Color("240"))
 
 type Filetree struct {
-	Songs    []*song.Song
+	Songs    []song.Song
 	table    table.Model
 	MusicDir string
 }
@@ -50,10 +50,17 @@ func (m Filetree) View() tea.View {
 	return tea.NewView(baseStyle.Render(m.table.View()) + "\n  " + m.table.HelpView() + "\n")
 }
 
-func NewFiletree(table table.Model) *Filetree {
+func NewFiletree(t table.Model) *Filetree {
+	home, _ := os.UserHomeDir()
+	musicDir := filepath.Join(home, "Music")
+	songs := ParseDir(musicDir)
+
+	t.SetRows(RowsFromSongs(songs))
+
 	return &Filetree{
-		MusicDir: "~/Music",
-		table:    table,
+		MusicDir: musicDir,
+		table:    t,
+		Songs:    songs,
 	}
 }
 
@@ -63,32 +70,31 @@ func GetColumns() []table.Column {
 	}
 }
 
-func GetRows() []table.Row {
-	return []table.Row{
-		{"hi"},
-		{"hi2"},
-		{"MagBay"},
+func RowsFromSongs(songs []song.Song) []table.Row {
+	rows := make([]table.Row, 0, len(songs))
+	for _, s := range songs {
+		rows = append(rows, table.Row{s.Title}) // adjust fields to match song.Song
 	}
+	return rows
 }
 
-func (f Filetree) parseDir() {
-
-	filepath.WalkDir(f.MusicDir, func(path string, d fs.DirEntry, err error) error {
+func ParseDir(dir string) []song.Song {
+	var songs []song.Song
+	filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() {
-			fmt.Println("[DIR] ", path)
-		} else {
-			f.Songs = append(f.Songs, song.NewSong(path))
+		if !d.IsDir() {
+			songs = append(songs, song.NewSong(path))
 		}
 		return nil
 	})
+	return songs
 }
 
-func (f Filetree) SetMusicDir(dir string) {
+func (f *Filetree) SetMusicDir(dir string) {
 	f.MusicDir = dir
-	f.parseDir()
+	f.Songs = ParseDir(f.MusicDir)
 }
 
 func (f Filetree) PlaySelected(cursor int) {

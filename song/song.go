@@ -30,7 +30,7 @@ type Song struct {
 	// in_playlist map[int]struct{}
 }
 
-func NewSong(path string) *Song {
+func NewSong(path string) Song {
 	tags, err := taglib.ReadTags(path)
 	if err != nil {
 		log.Fatalf("Error parsing metadata: %v", err)
@@ -41,7 +41,7 @@ func NewSong(path string) *Song {
 
 	}
 
-	return &Song{
+	return Song{
 		Album:       firstTag(tags, taglib.Album),
 		Artist:      firstTag(tags, taglib.Artist),
 		Title:       firstTag(tags, taglib.Title),
