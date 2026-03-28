@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/gopxl/beep/v2"
 	"github.com/quakeq/djsera/filetree"
+	"github.com/quakeq/djsera/song"
 
 	"charm.land/bubbles/v2/table"
 	tea "charm.land/bubbletea/v2"
@@ -12,6 +14,8 @@ import (
 )
 
 func main() {
+
+	song.InitSpeaker(beep.SampleRate(44100))
 	// Don't pass rows here — songs aren't parsed yet
 	t := table.New(
 		table.WithColumns(filetree.GetColumns()),

@@ -38,8 +38,9 @@ func (m Filetree) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-			m.PlaySelected(m.table.Cursor())
-			return m, tea.Batch()
+			cmd = PlaySongCmd(m.Songs[m.table.Cursor()])
+			m.table, _ = m.table.Update(msg)
+			return m, cmd
 		}
 	}
 	m.table, cmd = m.table.Update(msg)
@@ -97,6 +98,9 @@ func (f *Filetree) SetMusicDir(dir string) {
 	f.Songs = ParseDir(f.MusicDir)
 }
 
-func (f Filetree) PlaySelected(cursor int) {
-	f.Songs[cursor].PlaySong()
+func PlaySongCmd(s song.Song) tea.Cmd {
+	return func() tea.Msg {
+		s.PlaySong()
+		return nil
+	}
 }

@@ -1,16 +1,18 @@
 package song
 
 import (
-	"fmt"
+	// "fmt"
 	"log"
 	"os"
 	"time"
 
-	"github.com/gopxl/beep/flac"
-	"github.com/gopxl/beep/speaker"
 	"github.com/gopxl/beep/v2"
+	"github.com/gopxl/beep/v2/flac"
+	"github.com/gopxl/beep/v2/speaker"
 	"go.senan.xyz/taglib"
 )
+
+const sampleRate = beep.SampleRate(44100)
 
 type Song struct {
 	//tags
@@ -54,6 +56,10 @@ func NewSong(path string) Song {
 	}
 }
 
+func InitSpeaker(sampleRate beep.SampleRate) {
+	speaker.Init(sampleRate, sampleRate.N(time.Second/10))
+}
+
 func firstTag(tags map[string][]string, key string) string {
 	if v, ok := tags[key]; ok && len(v) > 0 {
 		return v[0]
@@ -75,29 +81,19 @@ func (s Song) PlaySong() {
 	}
 	defer streamer.Close()
 
-	fmt.Printf("Playing: %s\n", s.songPath)
-	fmt.Printf("Sample Rate: %d Hz\n", format.SampleRate)
-	fmt.Printf("Channels:    %d\n", format.NumChannels)
-	fmt.Printf("Precision:   %d-bit\n", format.Precision*8)
-	fmt.Printf("Album:   %v\n", s.Album)
-	fmt.Printf("Artist:   %v\n", s.Artist)
-	fmt.Printf("Title:   %v\n", s.Title)
-	fmt.Printf("Length:   %v:%v\n", s.TrackLength/60, s.TrackLength%60)
-
-	// Initialize the speaker with the file's sample rate
-	// Buffer size: 1/10th of a second
-	// using beep sampleRate over tablib properties since that's what we're actually using to play music
-	bufferSize := format.SampleRate.N(time.Second / 10)
-	err = speaker.Init(format.SampleRate, bufferSize)
-	if err != nil {
-		log.Fatalf("Error initializing speaker: %v", err)
+	var finalStreamer beep.Streamer
+	if format.SampleRate != sampleRate {
+		finalStreamer = beep.Resample(4, format.SampleRate, sampleRate, streamer)
+	} else {
+		finalStreamer = streamer
 	}
+
+	speaker.Clear()
 
 	// Play the stream and wait until it finishes
 	done := make(chan bool)
-	speaker.Play(beep.Seq(streamer, beep.Callback(func() {
+	speaker.Play(beep.Seq(finalStreamer, beep.Callback(func() {
 		done <- true
 	})))
-
 	<-done
 }
