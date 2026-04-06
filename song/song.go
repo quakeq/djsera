@@ -87,6 +87,7 @@ func (s Song) PlaySong() {
 	} else {
 		finalStreamer = streamer
 	}
+	streamer.Len()
 
 	speaker.Clear()
 

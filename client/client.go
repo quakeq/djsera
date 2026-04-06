@@ -2,92 +2,70 @@ package client
 
 import (
 	"fmt"
-	"os"
+	"strings"
 
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
+	"github.com/quakeq/djsera/filetree"
 )
 
-type model struct {
-	choices  []string
-	cursor   int
-	selected map[int]struct{}
+type sessionState uint
+
+const (
+	filetreeView sessionState = iota
+)
+
+var (
+	modelStyle = lipgloss.NewStyle().
+			Width(15).
+			Height(5).
+			Align(lipgloss.Center, lipgloss.Center).
+			BorderStyle(lipgloss.HiddenBorder())
+	focusedModelStyle = lipgloss.NewStyle().
+				Width(15).
+				Height(5).
+				Align(lipgloss.Center, lipgloss.Center).
+				BorderStyle(lipgloss.NormalBorder()).
+				BorderForeground(lipgloss.Color("69"))
+	helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+)
+
+type Model struct {
+	state sessionState
+	index int
+
+	filetree filetree.Model
 }
 
-func initialModel() model {
-	return model{
-		choices:  []string{"hi", "bye"},
-		selected: make(map[int]struct{}),
+func newModel() Model {
+	m := Model{state: filetreeView}
+	m.filetree = *filetree.NewModel()
+	return m
+}
+
+func (m Model) Init() tea.Cmd {
+	return tea.Batch(m.filetree.Init())
+}
+
+func (m Model) View() tea.View {
+	var s strings.Builder
+	model := m.currentFocusedModel()
+	if m.state == filetreeView {
+		s.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, focusedModelStyle.Render(fmt.Sprintf("%4s", m.timer.View())), modelStyle.Render(m.spinner.View())))
 	}
+	s.WriteString(helpStyle.Render(fmt.Sprintf("\ntab: focus next • n: new %s • q: exit\n", model)))
+	return tea.NewView(s.String())
 }
 
-func (m model) Init() tea.Cmd {
-	return nil
+func (m Model) currentFocusedModel() string {
+	return "filetree"
+
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyPressMsg:
-		switch msg.String() {
-		case "ctrl-c", "q":
-			return m, tea.Quit
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
-				m.cursor++
-			}
-		case "enter", "space":
-			_, ok := m.selected[m.cursor]
-			if ok {
-				delete(m.selected, m.cursor)
-			} else {
-				m.selected[m.cursor] = struct{}{}
-			}
-		case "right", "l":
-
-		case "left", "h":
-
-		}
-	}
-	return m, nil
-}
-
-func (m model) View() tea.View {
-	// The header
-	s := "What should we buy at the market?\n\n"
-
-	// Iterate over our choices
-	for i, choice := range m.choices {
-
-		// Is the cursor pointing at this choice?
-		cursor := " " // no cursor
-		if m.cursor == i {
-			cursor = ">" // cursor!
-		}
-
-		// Is this choice selected?
-		checked := " " // not selected
-		if _, ok := m.selected[i]; ok {
-			checked = "x" // selected!
-		}
-
-		// Render the row
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
-	}
-
-	// The footer
-	s += "\nPress q to quit.\n"
-
-	// Send the UI for rendering
-	return tea.NewView(s)
-}
-
-func main() {
-	p := tea.NewProgram(initialModel())
-	if _, err := p.Run(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
-		os.Exit(1)
+func (m Model) Next() {
+	if m.index == len(spinners)-1 {
+		m.index = 0
+	} else {
+		m.index++
 	}
 }
